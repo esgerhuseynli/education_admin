@@ -1,0 +1,15 @@
+{
+  "name": "flutter-study-board",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Read-only dashboard for the Flutter Study Bot (Neon Postgres)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "demo": "DEMO=1 node server.js"
+  },
+  "engines": { "node": ">=20.12" },
+  "dependencies": {
+    "pg": "^8.13.0"
+  }
+}

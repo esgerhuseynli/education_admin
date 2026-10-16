@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flutter Academy Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Concept: a quest board. Today's quest on top, an 80-day trail map, a podium and
+   student cards with levels, and each submission shown as a chat with Professor Dash. */
+:root {
+  --bg: #eaf1f9; --surface: #ffffff; --surface-2: #f1f6fc; --line: #d6e1ee;
+  --ink: #11203b; --ink-2: #4b5d7a; --ink-3: #7686a1;
+  --accent: #1768e5; --accent-soft: #dce9fd; --on-accent: #ffffff;
+  --sun: #f2ac00; --sun-soft: #fff1cc; --coral: #e8503e;
+  --good: #137a4d; --good-soft: #d9f3e6; --mid: #8a5d00; --mid-soft: #fdeec6; --bad: #b8321f; --bad-soft: #fde1dc;
+  --code-bg: #0e1a2f; --code-ink: #dbe8ff;
+  --p1: #1768e5; --p2: #e0701a; --p3: #d63c7a; --p4: #1f8f4e; --p5: #7a4dde; --p6: #9a7b00;
+  --av-l: 84%; --av-ink: #11203b;
+  --shadow: 0 1px 2px rgba(17,32,59,.06), 0 8px 24px -12px rgba(17,32,59,.18);
+  --f-display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  --f-body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b1322; --surface: #131f35; --surface-2: #192846; --line: #26395c;
+    --ink: #eaf0fb; --ink-2: #a0b1cd; --ink-3: #7388a8;
+    --accent: #5aa2ff; --accent-soft: #1c3256; --on-accent: #0b1322;
+    --sun: #ffc53d; --sun-soft: #3a3010; --coral: #ff8a78;
+    --good: #46d9a0; --good-soft: #123a2e; --mid: #f2be4a; --mid-soft: #3b2f10; --bad: #ff8a78; --bad-soft: #43201c;
+    --code-bg: #08101e; --code-ink: #dbe8ff;
+    --p1: #4c8dff; --p2: #e8863a; --p3: #e5599a; --p4: #34a86a; --p5: #9a74f0; --p6: #d9c84a;
+    --av-l: 32%; --av-ink: #eaf0fb;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 28px -14px rgba(0,0,0,.6);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0b1322; --surface: #131f35; --surface-2: #192846; --line: #26395c;
+  --ink: #eaf0fb; --ink-2: #a0b1cd; --ink-3: #7388a8;
+  --accent: #5aa2ff; --accent-soft: #1c3256; --on-accent: #0b1322;
+  --sun: #ffc53d; --sun-soft: #3a3010; --coral: #ff8a78;
+  --good: #46d9a0; --good-soft: #123a2e; --mid: #f2be4a; --mid-soft: #3b2f10; --bad: #ff8a78; --bad-soft: #43201c;
+  --code-bg: #08101e; --code-ink: #dbe8ff;
+  --p1: #4c8dff; --p2: #e8863a; --p3: #e5599a; --p4: #34a86a; --p5: #9a74f0; --p6: #d9c84a;
+  --av-l: 32%; --av-ink: #eaf0fb;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 28px -14px rgba(0,0,0,.6);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 var(--f-body); -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 8px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 18px; }
+
+/* top bar */
+.top { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.top .wrap { display: flex; align-items: center; gap: 14px; padding-block: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; font: 800 20px/1 var(--f-display); letter-spacing: -.01em; margin-right: auto; }
+.tabs { display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 4px; }
+.tabs button { border: 0; background: none; padding: 7px 16px; border-radius: 999px; font-weight: 600; color: var(--ink-2); }
+.tabs button[aria-selected="true"] { background: var(--accent); color: var(--on-accent); }
+.icon-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; }
+.icon-btn:hover { border-color: var(--accent); }
+
+main { padding-block: 22px 70px; display: grid; gap: 26px; }
+h2 { font: 700 22px/1.2 var(--f-display); margin: 0 0 12px; letter-spacing: -.01em; }
+.sub { color: var(--ink-2); margin: -6px 0 14px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); }
+
+/* quest hero */
+.quest { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 0; overflow: hidden; }
+.quest-main { padding: 26px 28px; display: grid; gap: 10px; align-content: start; }
+.eyebrow { font: 600 13px/1 var(--f-body); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.quest h1 { font: 800 clamp(26px, 4.2vw, 40px)/1.08 var(--f-display); margin: 0; letter-spacing: -.02em; text-wrap: balance; }
+.quest .hello { color: var(--ink-2); max-width: 52ch; }
+.day-chip { display: inline-flex; align-items: baseline; gap: 6px; background: var(--sun-soft); color: var(--ink); border-radius: 999px; padding: 6px 14px; font: 700 14px var(--f-display); width: fit-content; }
+.day-chip b { font-size: 20px; }
+.quest-side { background: var(--surface-2); padding: 24px 26px; border-left: 1px solid var(--line); display: grid; gap: 16px; align-content: center; }
+.big { font: 800 44px/1 var(--f-display); font-variant-numeric: tabular-nums; }
+.big small { font-size: 18px; color: var(--ink-3); font-weight: 600; }
+.meter { height: 12px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.meter i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--accent), var(--p3)); }
+.avs { display: flex; flex-wrap: wrap; }
+.avs .av { margin-right: -8px; border: 3px solid var(--surface-2); }
+
+/* avatar */
+.av { --h: 210; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; flex: none; font: 800 16px var(--f-display); color: var(--av-ink); background: hsl(var(--h) 72% var(--av-l)); }
+.av.lg { width: 64px; height: 64px; font-size: 24px; }
+
+/* trail */
+.trail { padding: 22px 24px; }
+.phase { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 14px; align-items: center; padding-block: 8px; border-top: 1px dashed var(--line); }
+.phase:first-of-type { border-top: 0; }
+.phase-name { font: 700 14px/1.25 var(--f-display); display: flex; gap: 8px; align-items: center; }
+.phase-name i { width: 12px; height: 12px; border-radius: 4px; background: var(--c); flex: none; }
+.phase-name span { display: block; font: 500 12px var(--f-body); color: var(--ink-3); }
+.dots { display: flex; flex-wrap: wrap; gap: 6px; }
+.dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--c); display: grid; place-items: center; font: 600 10px var(--f-mono); color: var(--ink-3); background: transparent; opacity: .55; position: relative; }
+.dot.done { background: var(--c); color: #fff; opacity: 1; }
+.dot.now { background: var(--c); color: #fff; opacity: 1; box-shadow: 0 0 0 4px color-mix(in srgb, var(--c) 28%, transparent); animation: pulse 2s ease-in-out infinite; }
+.dot[data-tip]:hover::after { content: attr(data-tip); position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 4px 9px; border-radius: 8px; font: 600 12px var(--f-body); white-space: nowrap; z-index: 5; }
+
+/* podium + students */
+.podium { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: end; max-width: 760px; margin-inline: auto; }
+.pod { --pp: 12px; padding: 18px var(--pp) 0; text-align: center; border-radius: 22px 22px 0 0; display: grid; justify-items: center; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-bottom: 0; cursor: pointer; }
+.pod:hover { border-color: var(--accent); }
+.pod .medal { font-size: 26px; line-height: 1; }
+.pod .nm { font: 700 17px var(--f-display); overflow-wrap: anywhere; }
+.pod .lv { font-size: 12px; color: var(--ink-3); }
+.pod .xp { font: 800 20px var(--f-display); font-variant-numeric: tabular-nums; }
+.pod .base { width: calc(100% + 2 * var(--pp)); margin-inline: calc(-1px); margin-top: 10px; display: grid; place-items: center; font: 800 28px var(--f-display); color: #fff; border-radius: 0; }
+.pod.r1 .base { height: 78px; background: var(--sun); color: #3b2a00; }
+.pod.r2 .base { height: 54px; background: var(--accent); color: var(--on-accent); }
+.pod.r3 .base { height: 36px; background: var(--p3); }
+.pod.r1 { order: 2; } .pod.r2 { order: 1; } .pod.r3 { order: 3; }
+.pod.empty { opacity: .5; cursor: default; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+.stu { padding: 18px; display: grid; gap: 12px; text-align: left; width: 100%; transition: transform .15s ease, border-color .15s ease; }
+.stu:hover { transform: translateY(-2px); border-color: var(--accent); }
+.stu-head { display: flex; gap: 12px; align-items: center; min-width: 0; }
+.stu-head > div { min-width: 0; }
+.stu .nm { font: 700 18px var(--f-display); overflow-wrap: anywhere; }
+.stu .lv { font-size: 13px; color: var(--ink-2); }
+.xpbar { display: grid; gap: 5px; font-size: 13px; color: var(--ink-2); }
+.xpbar .meter { height: 10px; }
+.xpbar .meter i { background: var(--sun); }
+.xpbar .row { display: flex; justify-content: space-between; gap: 8px; font-variant-numeric: tabular-nums; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.stat { background: var(--surface-2); border-radius: 14px; padding: 8px 10px; }
+.stat b { display: block; font: 800 20px var(--f-display); font-variant-numeric: tabular-nums; }
+.stat span { font-size: 12px; color: var(--ink-3); }
+.badges { display: flex; flex-wrap: wrap; gap: 6px; min-height: 28px; }
+.badge { font-size: 12px; font-weight: 600; background: var(--accent-soft); color: var(--ink); padding: 3px 10px; border-radius: 999px; }
+.off { font-size: 12px; color: var(--ink-3); }
+
+/* tasks */
+.tasks { display: grid; gap: 10px; }
+.task { padding: 4px 18px; }
+.task summary { list-style: none; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 12px 0; cursor: pointer; }
+.task summary::-webkit-details-marker { display: none; }
+.daybadge { width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; font: 800 20px var(--f-display); color: #fff; background: var(--c); }
+.task .tt { font: 700 17px/1.25 var(--f-display); }
+.task .meta { font-size: 13px; color: var(--ink-3); }
+.ring { --v: 0; width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; font: 800 14px var(--f-display); background: conic-gradient(var(--accent) calc(var(--v) * 1%), var(--line) 0); position: relative; font-variant-numeric: tabular-nums; }
+.ring::before { content: ""; position: absolute; inset: 6px; background: var(--surface); border-radius: 50%; }
+.ring b { position: relative; }
+.task pre.body { margin: 0 0 14px; white-space: pre-wrap; overflow-wrap: anywhere; font: 15px/1.6 var(--f-body); background: var(--surface-2); border-radius: 14px; padding: 14px 16px; }
+
+/* drawer */
+.scrim { position: fixed; inset: 0; background: rgba(8,14,26,.55); z-index: 30; animation: fade .2s ease both; }
+.drawer { position: fixed; z-index: 31; top: 0; right: 0; bottom: 0; width: min(560px, 100%); background: var(--bg); border-left: 1px solid var(--line); overflow-y: auto; padding: 20px 18px 40px; animation: slide .25s ease both; }
+.drawer-head { display: flex; gap: 14px; align-items: center; margin-bottom: 16px; }
+.drawer-head h3 { font: 800 24px/1.1 var(--f-display); margin: 0; }
+.drawer-head .close { margin-left: auto; }
+.scores { display: flex; align-items: flex-end; gap: 4px; height: 70px; padding: 10px 12px; margin-bottom: 18px; }
+.scores i { flex: 1; max-width: 22px; min-height: 4px; background: var(--accent); border-radius: 4px 4px 0 0; }
+.scores i.p { background: var(--good); } .scores i.f { background: var(--coral); }
+.thread { display: grid; gap: 8px; margin-bottom: 22px; }
+.thread .when { font: 600 12px var(--f-mono); color: var(--ink-3); text-transform: uppercase; letter-spacing: .04em; margin-top: 6px; }
+.msg { max-width: 94%; border-radius: 18px; padding: 10px 14px; }
+.msg.me { background: var(--accent-soft); border-bottom-left-radius: 6px; justify-self: start; }
+.msg.bot { background: var(--surface); border: 1px solid var(--line); border-bottom-right-radius: 6px; justify-self: end; }
+.msg .who { font: 700 12px var(--f-display); color: var(--ink-3); margin-bottom: 3px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.msg pre { margin: 6px 0 0; background: var(--code-bg); color: var(--code-ink); padding: 12px; border-radius: 12px; font: 13px/1.5 var(--f-mono); overflow-x: auto; white-space: pre; }
+.pill { font: 700 12px var(--f-body); padding: 2px 9px; border-radius: 999px; }
+.pill.pass { background: var(--good-soft); color: var(--good); } .pill.partial { background: var(--mid-soft); color: var(--mid); } .pill.fail { background: var(--bad-soft); color: var(--bad); }
+.fb { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+.empty-state { text-align: center; padding: 38px 18px; color: var(--ink-2); }
+.empty-state b { display: block; font: 700 20px var(--f-display); color: var(--ink); margin-bottom: 4px; }
+#msg { padding: 80px 0; text-align: center; color: var(--ink-2); font: 600 18px var(--f-display); }
+
+/* opening splash */
+#splash { position: fixed; inset: 0; z-index: 100; background: var(--bg); display: grid; place-content: center; justify-items: center; gap: 16px; transition: opacity .5s ease, visibility .5s; }
+#splash.out { opacity: 0; visibility: hidden; }
+#splash img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid var(--accent); box-shadow: var(--shadow); animation: pop .7s cubic-bezier(.2,1.4,.4,1) both, bob 2.2s .8s ease-in-out infinite; }
+#splash .t { font: 800 26px var(--f-display); letter-spacing: -.01em; animation: rise .6s .25s ease both; }
+#splash .s { color: var(--ink-2); animation: rise .6s .45s ease both; }
+#splash .bar { width: 160px; height: 6px; border-radius: 999px; background: var(--line); overflow: hidden; animation: rise .6s .55s ease both; }
+#splash .bar i { display: block; height: 100%; width: 40%; border-radius: 999px; background: linear-gradient(90deg, var(--accent), var(--p3)); animation: slideBar 1.1s ease-in-out infinite; }
+#view > * { animation: rise .55s ease both; }
+#view > *:nth-child(2) { animation-delay: .12s; } #view > *:nth-child(3) { animation-delay: .24s; } #view > *:nth-child(4) { animation-delay: .36s; }
+.dot { animation: pop .35s ease both; animation-delay: calc(var(--i, 0) * 14ms + .3s); }
+.dot.now { animation: pop .35s ease both, pulse 2s 1.6s ease-in-out infinite; animation-delay: calc(var(--i, 0) * 14ms + .3s), 0s; }
+.meter i { transform-origin: left center; animation: grow .9s .35s cubic-bezier(.2,.8,.2,1) both; }
+.grid .stu, .tasks .task { animation: rise .5s ease both; animation-delay: calc(var(--i, 0) * 60ms); }
+.pod { animation: rise .6s ease both; } .pod.r2 { animation-delay: .1s; } .pod.r1 { animation-delay: .25s; } .pod.r3 { animation-delay: .4s; }
+@keyframes pop { from { opacity: 0; transform: scale(.4); } to { opacity: 1; transform: none; } }
+@keyframes bob { 50% { transform: translateY(-6px) rotate(-3deg); } }
+@keyframes slideBar { from { transform: translateX(-100%); } to { transform: translateX(260%); } }
+@keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slide { from { transform: translateX(30px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes pulse { 50% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--c) 10%, transparent); } }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media (max-width: 760px) {
+  .quest { grid-template-columns: minmax(0, 1fr); }
+  .quest-side { border-left: 0; border-top: 1px solid var(--line); }
+  .phase { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .trail { padding: 18px; }
+  .podium { gap: 8px; }
+  .pod { --pp: 6px; }
+  .quest-main { padding: 22px 20px; }
+}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div class="brand">Flutter Academy</div>
+  <div class="tabs" role="tablist" aria-label="Sections">
+    <button role="tab" data-tab="quest" aria-selected="true">Quest</button>
+    <button role="tab" data-tab="students" aria-selected="false">Students</button>
+    <button role="tab" data-tab="tasks" aria-selected="false">Tasks</button>
+  </div>
+  <button class="icon-btn" id="theme" aria-label="Toggle light and dark theme" title="Light / dark">◐</button>
+  <button class="icon-btn" id="refresh" aria-label="Refresh data" title="Refresh">↻</button>
+</div></header>
+
+<div class="wrap">
+  <div id="msg">Waking up Professor Dash…</div>
+  <main id="view" hidden></main>
+</div>
+<div id="layer"></div>
+<div id="splash" role="status" aria-label="Loading">
+  <img src="/icon.png" alt="" width="256" height="256">
+  <div class="t">Flutter Academy</div>
+  <div class="s">Professor Dash is warming up…</div>
+  <div class="bar"><i></i></div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const PHASES = [
+  { a: 1, b: 20, n: 'Month 1: Zero to programmer', c: 'var(--p1)' },
+  { a: 21, b: 40, n: 'Month 2: Dart essentials', c: 'var(--p2)' },
+  { a: 41, b: 60, n: 'Month 3: Advanced Dart and tools', c: 'var(--p3)' },
+  { a: 61, b: 85, n: 'Month 4: Flutter basics', c: 'var(--p4)' },
+  { a: 86, b: 110, n: 'Month 5: Real-world Flutter', c: 'var(--p5)' },
+  { a: 111, b: 130, n: 'Month 6: Building with AI', c: 'var(--p6)' },
+];
+const LEVELS = [
+  [0, 'Hello World Hatchling', '🥚'], [150, 'Variable Wrangler', '🐣'], [500, 'Widget Apprentice', '🧩'],
+  [1200, 'State Sorcerer', '🔮'], [2400, 'Flutter Wizard', '🧙'], [4000, 'Dash Legend', '🦄'],
+];
+const phaseOf = d => PHASES.find(p => d >= p.a && d <= p.b) || PHASES[0];
+const level = xp => { let i = 0; LEVELS.forEach((l, k) => { if (xp >= l[0]) i = k; }); const next = LEVELS[i + 1]; return { name: LEVELS[i][1], icon: LEVELS[i][2], from: LEVELS[i][0], next: next ? next[0] : null }; };
+let data = null, tab = 'quest';
+
+async function api(path) {
+  const r = await fetch(path);
+  if (!r.ok) throw new Error('Something went wrong (' + r.status + ').');
+  return r.json();
+}
+const ago = iso => {
+  if (!iso) return 'not yet';
+  const m = Math.round((Date.now() - new Date(iso)) / 60000);
+  if (m < 1) return 'just now'; if (m < 60) return m + ' min ago';
+  if (m < 1440) return Math.round(m / 60) + ' h ago';
+  return Math.round(m / 1440) + ' d ago';
+};
+const hue = name => { let h = 0; for (const c of String(name)) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
+const av = (name, big) => `<span class="av${big ? ' lg' : ''}" style="--h:${hue(name)}" aria-hidden="true">${esc((String(name).trim()[0] || '?').toUpperCase())}</span>`;
+const badgesOf = s => {
+  const b = [];
+  if (s.tasks_done >= 1) b.push('🌱 First quest');
+  if (s.tasks_done >= 5) b.push('🚀 Five down');
+  if (s.tasks_done >= 20) b.push('🏔️ Twenty!');
+  if (s.best_score >= 100) b.push('💯 Perfect score');
+  if (s.avg_score >= 85 && s.tasks_done >= 3) b.push('🔥 On fire');
+  if (s.attempts > s.tasks_done * 2 && s.tasks_done >= 2) b.push('🐜 Persistent');
+  return b;
+};
+const greeting = () => { const h = new Date().getHours(); return h < 5 ? 'Late-night coding, legend.' : h < 12 ? 'Good morning, quest master.' : h < 18 ? 'Good afternoon, quest master.' : 'Good evening, quest master.'; };
+
+/* ---- views ---- */
+function questView() {
+  const lb = data.leaderboard, latest = data.tasks[0];
+  const day = latest?.day_number || data.tasks.length || 0;
+  const active = data.activeStudents;
+  const submitted = latest?.submitted || 0;
+  const pct = active ? Math.round(submitted / active * 100) : 0;
+  const whoSub = lb.filter(s => s.active).slice(0, 8);
+  const hero = `
+  <section class="card quest" aria-label="Today's quest">
+    <div class="quest-main">
+      <span class="day-chip">Day <b>${day || '–'}</b> of ${data.totalDays}</span>
+      <div class="eyebrow">${esc(greeting())} Today's quest</div>
+      <h1>${esc(latest?.title || 'No quest yet')}</h1>
+      <p class="hello">${latest ? 'Professor Dash is waiting for submissions. Open Tasks to read the full story.' : 'The first quest goes out on the next weekday at 09:00.'}</p>
+    </div>
+    <div class="quest-side">
+      <div><div class="big">${submitted}<small> / ${active} handed in</small></div></div>
+      <div class="meter" role="img" aria-label="${pct}% of active students submitted"><i style="width:${pct}%"></i></div>
+      <div class="avs">${whoSub.map(s => av(s.name)).join('') || '<span class="off">No active students yet</span>'}</div>
+    </div>
+  </section>`;
+  const trail = `
+  <section aria-label="Course trail">
+    <h2>The trail</h2>
+    <p class="sub">${data.tasks.length} of ${data.totalDays} days reached by at least one student. Each circle is one day.</p>
+    <div class="card trail">${PHASES.map(p => {
+      let dots = '';
+      for (let d = p.a; d <= p.b; d++) {
+        const t = data.tasks.find(x => x.day_number === d);
+        const cls = d === day ? 'now' : t ? 'done' : '';
+        dots += `<span class="dot ${cls}" style="--c:${p.c};--i:${d}" data-tip="${esc(t ? 'Day ' + d + ': ' + t.title : 'Day ' + d + ': coming soon')}">${d === day ? d : ''}</span>`;
+      }
+      return `<div class="phase"><div class="phase-name" style="--c:${p.c}"><i></i><div>${esc(p.n)}<span>Days ${p.a}-${p.b}</span></div></div><div class="dots">${dots}</div></div>`;
+    }).join('')}</div>
+  </section>`;
+  const top = lb.filter(s => s.tasks_done > 0).slice(0, 3);
+  const pod = `
+  <section aria-label="Podium">
+    <h2>Podium</h2>
+    <p class="sub">Ranked by XP: the sum of each student's best score per quest.</p>
+    ${top.length ? `<div class="podium">${[0, 1, 2].map(i => { const s = top[i]; if (!s) return `<div class="pod r${i + 1} empty"><span class="medal">·</span><div class="nm">–</div><div class="base">${i + 1}</div></div>`;
+      const lv = level(s.xp); return `<button class="pod r${i + 1}" data-id="${esc(s.chat_id)}" data-name="${esc(s.name)}"><span class="medal">${['🥇', '🥈', '🥉'][i]}</span>${av(s.name, true)}<div class="nm">${esc(s.name)}</div><div class="lv">${lv.icon} ${esc(lv.name)}</div><div class="xp">${s.xp} XP</div><div class="base">${i + 1}</div></button>`; }).join('')}</div>`
+      : `<div class="card empty-state"><b>The podium is empty</b>Be the first to hand in a quest and claim the gold.</div>`}
+  </section>`;
+  return hero + trail + pod;
+}
+
+function studentsView() {
+  const lb = data.leaderboard;
+  if (!lb.length) return `<div class="card empty-state"><b>No students yet</b>Ask them to send /start to the bot and Professor Dash will take it from there.</div>`;
+  return `<section><h2>Students</h2><p class="sub">Tap a card to read their submissions and Professor Dash's feedback.</p>
+  <div class="grid">${lb.map((s, idx) => {
+    const lv = level(s.xp), span = lv.next ? lv.next - lv.from : 1, into = lv.next ? s.xp - lv.from : span;
+    const pct = Math.min(100, Math.round(into / span * 100));
+    const bs = badgesOf(s);
+    return `<button class="card stu" style="--i:${idx}" data-id="${esc(s.chat_id)}" data-name="${esc(s.name)}">
+      <div class="stu-head">${av(s.name, true)}<div><div class="nm">${esc(s.name)}${s.active ? '' : ' <span class="off">(paused)</span>'}</div><div class="lv">${lv.icon} ${esc(lv.name)}</div></div></div>
+      <div class="xpbar"><div class="row"><span>${s.xp} XP</span><span>${lv.next ? (lv.next - s.xp) + ' to next level' : 'Max level!'}</span></div><div class="meter"><i style="width:${pct}%"></i></div></div>
+      <div class="stats"><div class="stat"><b>${s.tasks_done}</b><span>quests</span></div><div class="stat"><b>${s.avg_score}</b><span>avg score</span></div><div class="stat"><b>${s.passed}</b><span>passed</span></div></div>
+      <div class="badges">${bs.map(b => `<span class="badge">${esc(b)}</span>`).join('') || '<span class="off">No badges yet</span>'}</div>
+      <div class="off">On day ${esc(s.current_day)} · last seen ${esc(ago(s.last_active))}</div>
+    </button>`; }).join('')}</div></section>`;
+}
+
+function tasksView() {
+  if (!data.tasks.length) return `<div class="card empty-state"><b>No quests released</b>The first one goes out on the next weekday at 09:00.</div>`;
+  return `<section><h2>Quest log</h2><p class="sub">Every quest a student has reached, newest first. The ring shows the average score.</p>
+  <div class="tasks">${data.tasks.map((t, i) => {
+    const p = phaseOf(t.day_number || 0);
+    return `<details class="card task" style="--i:${Math.min(i, 12)}"><summary>
+      <span class="daybadge" style="--c:${p.c}" aria-label="Day ${esc(t.day_number ?? '?')}">${esc(t.day_number ?? '•')}</span>
+      <span><div class="tt">${esc(t.title)}</div><div class="meta">${t.submitted} of ${data.activeStudents} handed in</div></span>
+      <span class="ring" style="--v:${+t.avg_score || 0}" role="img" aria-label="Average score ${esc(t.avg_score)}"><b>${esc(t.avg_score)}</b></span>
+    </summary><pre class="body">${esc(t.description)}</pre></details>`; }).join('')}</div></section>`;
+}
+
+function render() {
+  $('#msg').hidden = true; const v = $('#view'); v.hidden = false;
+  document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === tab));
+  v.innerHTML = tab === 'quest' ? questView() : tab === 'students' ? studentsView() : tasksView();
+  v.querySelectorAll('[data-id]').forEach(el => el.onclick = () => openStudent(el.dataset.id, el.dataset.name));
+}
+
+/* ---- drawer ---- */
+function closeDrawer() { $('#layer').innerHTML = ''; document.removeEventListener('keydown', escClose); }
+function escClose(e) { if (e.key === 'Escape') closeDrawer(); }
+async function openStudent(id, name) {
+  const s = data.leaderboard.find(x => x.chat_id === id) || {};
+  const lv = level(s.xp || 0);
+  $('#layer').innerHTML = `<div class="scrim" id="scrim"></div>
+  <aside class="drawer" role="dialog" aria-modal="true" aria-label="${esc(name)}">
+    <div class="drawer-head">${av(name, true)}<div><h3>${esc(name)}</h3><div class="lv">${lv.icon} ${esc(lv.name)} · ${s.xp || 0} XP</div></div><button class="icon-btn close" id="close" aria-label="Close">✕</button></div>
+    <div id="dbody" class="off">Fetching the chat history…</div></aside>`;
+  $('#scrim').onclick = closeDrawer; $('#close').onclick = closeDrawer; $('#close').focus();
+  document.addEventListener('keydown', escClose);
+  try {
+    const subs = await api('/api/student/' + encodeURIComponent(id));
+    const bars = [...subs].reverse().map(x => `<i class="${x.verdict === 'pass' ? 'p' : x.verdict === 'fail' ? 'f' : ''}" style="height:${Math.max(4, +x.score || 0)}%" title="${esc(x.title)}: ${esc(x.score)}"></i>`).join('');
+    $('#dbody').className = '';
+    $('#dbody').innerHTML = subs.length ? `
+      <div class="card scores" role="img" aria-label="Scores over time">${bars}</div>
+      ${subs.map(x => `<div class="thread">
+        <div class="when">Day ${esc(x.day_number)} · ${esc(x.title)} · ${esc(ago(x.created_at))}</div>
+        <div class="msg me"><div class="who">${esc(name)}</div><pre>${esc(x.code)}</pre></div>
+        <div class="msg bot"><div class="who">Professor Dash 🦄 <span class="pill ${esc(x.verdict)}">${esc(x.verdict)} · ${esc(x.score)}/100</span></div><div class="fb">${esc(x.feedback)}</div></div>
+      </div>`).join('')}`
+      : `<div class="card empty-state"><b>Nothing handed in yet</b>${esc(name)} hasn't sent any code. Professor Dash is patient.</div>`;
+  } catch (e) { $('#dbody').textContent = e.message; }
+}
+
+/* ---- boot ---- */
+function hideSplash() {
+  const sp = $('#splash'); if (!sp) return;
+  sp.classList.add('out'); setTimeout(() => sp.remove(), 700);
+}
+async function load(first) {
+  if (!first) { $('#msg').hidden = false; $('#msg').textContent = 'Waking up Professor Dash…'; $('#view').hidden = true; }
+  try {
+    const [d] = await Promise.all([api('/api/board'), first ? new Promise(r => setTimeout(r, 1400)) : null]);
+    data = d; render();
+  } catch (e) { $('#msg').hidden = false; $('#msg').textContent = e.message; $('#view').hidden = true; }
+  if (first) hideSplash();
+}
+document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => { tab = b.dataset.tab; if (data) { render(); window.scrollTo({ top: 0 }); } });
+$('#refresh').onclick = () => load(false);
+$('#theme').onclick = () => {
+  const root = document.documentElement;
+  const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  root.dataset.theme = dark ? 'light' : 'dark';
+  try { localStorage.setItem('board_theme', root.dataset.theme); } catch {}
+};
+try { const t = localStorage.getItem('board_theme'); if (t) document.documentElement.dataset.theme = t; } catch {}
+load(true);
+</script>
+</body>
+</html>
